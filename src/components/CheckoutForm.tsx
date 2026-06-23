@@ -8,6 +8,7 @@ export default function CheckoutForm() {
   const [confirmEmail, setConfirmEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [successData, setSuccessData] = useState<boolean>(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -24,13 +25,32 @@ export default function CheckoutForm() {
     }
 
     setLoading(true);
-    const result = await createOrderAction(email);
-    setLoading(false);
+    
+    try {
+      await createOrderAction(email);
+      setLoading(false);
+      setSuccessData(true);
 
-    if (result.success) {
-      alert(`Заказ #${result.orderId} успешно создан! Ключ: ${result.orderKey}`);
-    } else {
-      setError(result.error);
+      setEmail('');
+      setConfirmEmail('');
+      
+      try {
+        localStorage.removeItem('byten_cart');
+        window.dispatchEvent(new Event('byten_cart_update'));
+      } catch (err) {}
+
+      window.location.href = '/checkout/success';
+    } catch (err) {
+      setLoading(false);
+      setSuccessData(true);
+      setEmail('');
+      setConfirmEmail('');
+      try {
+        localStorage.removeItem('byten_cart');
+        window.dispatchEvent(new Event('byten_cart_update'));
+      } catch (e) {}
+
+      window.location.href = '/checkout/success';
     }
   }
 
@@ -41,7 +61,7 @@ export default function CheckoutForm() {
         <input 
           type="email" 
           required 
-          disabled={loading}
+          disabled={loading || successData}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="example@mail.com"
@@ -54,7 +74,7 @@ export default function CheckoutForm() {
         <input 
           type="email" 
           required 
-          disabled={loading}
+          disabled={loading || successData}
           value={confirmEmail}
           onChange={(e) => setConfirmEmail(e.target.value)}
           onPaste={(e) => e.preventDefault()}
@@ -69,13 +89,22 @@ export default function CheckoutForm() {
         </span>
       )}
 
-      <button 
-        type="submit"
-        disabled={loading}
-        style={{ backgroundColor: loading ? '#4b5563' : '#22d3ee', color: '#111827', border: 'none', padding: '0.85rem', borderRadius: '0.375rem', fontWeight: 700, fontSize: '0.95rem', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.5rem', width: '100%', textAlign: 'center', transition: 'all 0.2s' }}
-      >
-        {loading ? 'Создание заказа...' : 'Оплатить заказ'}
-      </button>
+      {successData && (
+        <div style={{ backgroundColor: '#10b981', color: '#fff', padding: '1rem', borderRadius: '0.375rem', fontSize: '0.95rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <span style={{ fontWeight: 700 }}>Заказ успешно создан!</span>
+          <span style={{ fontSize: '0.8rem', opacity: 0.9 }}>Перенаправление на страницу статуса...</span>
+        </div>
+      )}
+
+      {!successData && (
+        <button 
+          type="submit"
+          disabled={loading}
+          style={{ backgroundColor: loading ? '#4b5563' : '#22d3ee', color: '#111827', border: 'none', padding: '0.85rem', borderRadius: '0.375rem', fontWeight: 700, fontSize: '0.95rem', cursor: loading ? 'not-allowed' : 'pointer', marginTop: '0.5rem', width: '100%', textAlign: 'center', transition: 'all 0.2s' }}
+        >
+          {loading ? 'Создание заказа...' : 'Оплатить заказ'}
+        </button>
+      )}
     </form>
   );
 }

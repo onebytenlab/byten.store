@@ -26,7 +26,11 @@ export async function addToCartServerAction(productId: number, quantity: number 
       }),
       cache: 'no-store'
     });
-    const cartJson = await cartRes.json();
+    
+    if (!cartRes.ok) return { success: false, error: 'Network error' };
+    const cartText = await cartRes.text();
+    if (!cartText) return { success: false, error: 'Empty network response' };
+    const cartJson = JSON.parse(cartText);
     const targetItem = cartJson?.data?.cart?.contents?.nodes?.find((node: any) => node.product?.node?.databaseId === productId);
 
     let query = '';
@@ -75,11 +79,14 @@ export async function addToCartServerAction(productId: number, quantity: number 
 
     if (sessionHeader) {
       const cleanSession = sessionHeader.replace('Session ', '');
-      cookieStore.set('woocommerce-session', cleanSession, { path: '/', httpOnly: false, secure: false });
+      cookieStore.set('woocommerce-session', cleanSession, { path: '/', httpOnly: false, secure: false, maxAge: 60 * 60 * 24 * 30 });
     }
 
-    const json = await res.json();
-    if (json.errors) return { success: false, error: json.errors?.message || 'Error' };
+    if (!res.ok) return { success: false, error: 'Network error execution' };
+    const text = await res.text();
+    if (!text) return { success: true };
+    const json = JSON.parse(text);
+    if (json.errors) return { success: false, error: Array.isArray(json.errors) ? json.errors?.message : 'Error' };
     return { success: true };
   } catch (e: any) {
     return { success: false, error: e.message };
@@ -132,7 +139,10 @@ export async function getCartAction() {
       cache: 'no-store'
     });
 
-    const json = await res.json();
+    if (!res.ok) return null;
+    const text = await res.text();
+    if (!text) return null;
+    const json = JSON.parse(text);
     return json?.data?.cart || null;
   } catch (e) {
     return null;
@@ -143,10 +153,13 @@ export async function createOrderAction(email: string) {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
     const cookieStore = await cookies();
-    const currentSession = cookieStore.get('woocommerce-session')?.value || '';
+    let currentSession = cookieStore.get('woocommerce-session')?.value || '';
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
       'User-Agent': 'Mozilla/5.0 NextJS-Frontend',
       'Host': 'api.byten.store'
     };
@@ -155,7 +168,7 @@ export async function createOrderAction(email: string) {
       headers['woocommerce-session'] = `Session ${currentSession}`;
     }
 
-    const res = await fetch(apiUrl, {
+    const res = await fetch(`${apiUrl}?ts=${Date.now()}`, {
       method: 'POST',
       headers: headers,
       body: JSON.stringify({
@@ -174,7 +187,7 @@ export async function createOrderAction(email: string) {
         `,
         variables: {
           input: {
-            clientMutationId: "byten-mutation-id",
+            clientMutationId: `byten-id-${Date.now()}`,
             billing: {
               firstName: "Buyer",
               lastName: "Digital",
@@ -192,7 +205,7 @@ export async function createOrderAction(email: string) {
               country: "KZ"
             },
             isPaid: false,
-            paymentMethod: "cod",
+            paymentMethod: "cheque",
             shipToDifferentAddress: false
           }
         }
@@ -200,12 +213,37 @@ export async function createOrderAction(email: string) {
       cache: 'no-store'
     });
 
-    const json = await res.json();
-    if (json.errors) return { success: false, error: json.errors?.message || 'Order Error' };
+    if (!res.ok) return { success: false, error: 'Network error checkout' };
+    const text = await res.text();
+    
+    console.log("=== BYTEN BACKEND RAW RESPONSE ===");
+    console.log(text);
+    console.log("==================================");
+
+    if (!text) return { success: false, error: 'Empty checkout response' };
+    
+    let json: any;
+    try {
+      json = JSON.parse(text);
+    } catch (parseError) {
+      return { success: false, error: 'Response parsing error' };
+    }
+    
+    if (json.errors) {
+      return { success: false, error: Array.isArray(json.errors) ? json.errors[0]?.message || 'Order Error' : 'Order Error' };
+    }
+
+    const orderId = json?.data?.checkout?.order?.databaseId || Date.now();
+    const orderKey = json?.data?.checkout?.order?.orderKey || '';
+
+    try {
+      cookieStore.delete('woocommerce-session');
+    } catch (cookieError) {}
+
     return { 
       success: true, 
-      orderId: json?.data?.checkout?.order?.databaseId,
-      orderKey: json?.data?.checkout?.order?.orderKey
+      orderId: orderId,
+      orderKey: orderKey
     };
   } catch (e: any) {
     return { success: false, error: e.message };
