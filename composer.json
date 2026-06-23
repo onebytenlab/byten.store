@@ -1,0 +1,6 @@
+{
+    "require": {
+        "wp-graphql/wp-graphql": "^2.6",
+        "wp-graphql/wp-graphql-woocommerce": "^1.0"
+    }
+}

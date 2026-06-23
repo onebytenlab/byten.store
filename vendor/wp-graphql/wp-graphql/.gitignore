@@ -1,0 +1,76 @@
+# Hidden files on Windows machines
+.DS_Store
+
+# Hidden files for users using JetBrains IDEs (PHPStorm, WebStorm, etc)
+.idea
+
+# Hidden files for users using VSCode as their IDE.
+.vscode
+
+# Cursor files for users using the Cursor IDE
+
+# Ignore all files under the .cursor directory as users will use this directory for personal IDE configuration
+.cursor/*
+
+# Do not ignore the prd.md file as this helps cursor understand the project and requirements and the community can help maintain it
+!.cursor/prd.md
+
+# Do not ignore the cursor/rules directory as it contains project-specific rules that should be shared with all contributors
+!.cursor/rules
+!.cursor/rules/**
+
+# Composer dependencies. These should be installed on the users machine
+vendor
+
+# We _do_ want to version our tests!
+!/tests
+
+# Test suite config files. Used to overried the *.suite.dist.yml configs
+/tests/*.suite.yml
+
+# PHPCS cached files.
+/tests/_output/*.json
+
+# Directory used to generate the .zip for deploying to WordPress.org
+plugin-build
+
+# Output of testing code coverage
+coverage/*
+
+# Generated Schema used in some tooling. Versioned Schema is uploaded as a Release artifact to Github.
+schema.graphql
+
+# Used to override phpcs.xml.dist
+phpcs.xml
+
+# Config for phpunit. Used to override phpunit.xml.dist
+phpunit.xml
+
+# JavaScript dependencies. Should be installed locally on the machine, not versioned
+node_modules
+
+# Built JavaScript assets. Should be generated via `npm run build`
+# These are built during release/deployment workflows
+build
+
+# Config for Codeception. Used to override the codeception.dist.yml
+codeception.yml
+
+# Local wp-env overrides. Used to override .wp-env.json for local testing
+.wp-env.override.json
+
+# Log files
+.log
+
+# File used for Codeception to track test coverage
+c3.php
+
+# Used for setting local environment variables when testing
+.env
+
+# output from e2e tests
+artifacts
+
+# Changesets
+# Note: Do NOT ignore .changeset/*.md files as they are needed for release management
+.changeset/pre.json

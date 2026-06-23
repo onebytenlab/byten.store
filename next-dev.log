@@ -1,0 +1,24 @@
+nohup: ignoring input
+
+> byten-frontend@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.105:3000
+- Environments: .env.local
+✓ Ready in 651ms
+
+ GET /product/steam-1000 200 in 1916ms (next.js: 1008ms, application-code: 907ms)
+⚠ Blocked cross-origin request to Next.js dev resource /_next/webpack-hmr from "byten.store".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['byten.store'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ GET /product/steam-1000 200 in 510ms (next.js: 30ms, application-code: 480ms)

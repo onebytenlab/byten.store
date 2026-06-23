@@ -1,0 +1,290 @@
+name: Automated-Testing
+
+on:
+  schedule:
+    - cron:  '0 4 * * 5'
+  push:
+    branches:
+      - develop
+      - master
+  pull_request:
+    branches:
+      - develop
+    paths:
+      - '**.php'
+      - '!docs/**'
+
+jobs:
+  acceptance:
+    env:
+      STRIPE_API_PUBLISHABLE_KEY: ${{ secrets.STRIPE_API_PUBLISHABLE_KEY }}
+      STRIPE_API_SECRET_KEY: ${{ secrets.STRIPE_API_SECRET_KEY }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.3', '8.1']
+        wordpress: ['6.8', '6.7', '6.3']
+        include:
+          - php: '8.3'
+            wordpress: '6.8'
+            coverage: true
+            xdebug: 1
+            hpos: 1
+          - php: '8.1'
+            wordpress: '6.3'
+            debug: '--debug'
+          - wordpress: '6.3'
+            hpos: 1
+      fail-fast: false
+    name: Acceptance in WP v${{ matrix.wordpress }} on PHP${{ matrix.php }}${{ matrix.hpos == 1 && ' HPOS' || '' }}${{ matrix.debug == '--debug' && ' Debug' || '' }}${{ matrix.coverage == true && ' +Coverage' || '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json, mbstring
+          tools: composer
+
+      - name: Install dependencies
+        run: |
+          cp .env.testing .env
+          rm -rf composer.lock
+          composer install
+          WP_VERSION=${{ matrix.wordpress }} SKIP_DB_CREATE=true SKIP_WP_SETUP=true composer installTestEnv
+
+      - name: Run Acceptance Tests
+        id: tests
+        continue-on-error: true
+        env:
+          USING_XDEBUG: ${{ matrix.xdebug }}
+          WP_VERSION: ${{ matrix.wordpress }}
+          PHP_VERSION: ${{ matrix.php }}
+        run: |
+          HPOS="${{ matrix.hpos }}" FILTER="acceptance --fail-fast ${{ matrix.coverage == true && '--coverage=acceptance.cov' || '' }} ${{ matrix.debug }}" composer dRunTestStandalone
+
+      - name: Retry on failure
+        id: retry
+        if: ${{ steps.tests.outcome == 'failure' }}
+        env:
+          USING_XDEBUG: ${{ matrix.xdebug }}
+          WP_VERSION: ${{ matrix.wordpress }}
+          PHP_VERSION: ${{ matrix.php }}
+        run: |
+          HPOS="${{ matrix.hpos }}" FILTER="acceptance ${{ matrix.coverage == true && '--coverage=acceptance.cov' || '' }} ${{ matrix.debug }}" composer dRunTestStandalone
+
+      - name: Fail if both attempts failed
+        if: ${{ steps.tests.outcome == 'failure' && steps.retry.outcome == 'failure' }}
+        run: exit 1
+
+      - name: Upload coverage artifact
+        if: ${{ matrix.coverage == true && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-acceptance
+          path: tests/_output/acceptance.cov
+          if-no-files-found: ignore
+
+  functional:
+    env:
+      STRIPE_API_PUBLISHABLE_KEY: ${{ secrets.STRIPE_API_PUBLISHABLE_KEY }}
+      STRIPE_API_SECRET_KEY: ${{ secrets.STRIPE_API_SECRET_KEY }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.3', '8.1']
+        wordpress: ['6.8', '6.7', '6.3']
+        include:
+          - php: '8.3'
+            wordpress: '6.8'
+            coverage: true
+            xdebug: 1
+            hpos: 1
+          - php: '8.1'
+            wordpress: '6.3'
+            debug: '--debug'
+          - wordpress: '6.3'
+            hpos: 1
+      fail-fast: false
+    name: Functional in WP v${{ matrix.wordpress }} on PHP${{ matrix.php }}${{ matrix.hpos == 1 && ' HPOS' || '' }}${{ matrix.debug == '--debug' && ' Debug' || '' }}${{ matrix.coverage == true && ' +Coverage' || '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json, mbstring
+          tools: composer
+
+      - name: Install dependencies
+        run: |
+          cp .env.testing .env
+          rm -rf composer.lock
+          composer install
+          WP_VERSION=${{ matrix.wordpress }} SKIP_DB_CREATE=true SKIP_WP_SETUP=true composer installTestEnv
+
+      - name: Run Functional Tests
+        id: tests
+        continue-on-error: true
+        env:
+          USING_XDEBUG: ${{ matrix.xdebug }}
+          WP_VERSION: ${{ matrix.wordpress }}
+          PHP_VERSION: ${{ matrix.php }}
+        run: |
+          HPOS="${{ matrix.hpos }}" FILTER="functional --fail-fast ${{ matrix.coverage == true && '--coverage=functional.cov' || '' }} ${{ matrix.debug }}" composer dRunTestStandalone
+
+      - name: Retry on failure
+        id: retry
+        if: ${{ steps.tests.outcome == 'failure' }}
+        env:
+          USING_XDEBUG: ${{ matrix.xdebug }}
+          WP_VERSION: ${{ matrix.wordpress }}
+          PHP_VERSION: ${{ matrix.php }}
+        run: |
+          HPOS="${{ matrix.hpos }}" FILTER="functional ${{ matrix.coverage == true && '--coverage=functional.cov' || '' }} ${{ matrix.debug }}" composer dRunTestStandalone
+
+      - name: Fail if both attempts failed
+        if: ${{ steps.tests.outcome == 'failure' && steps.retry.outcome == 'failure' }}
+        run: exit 1
+
+      - name: Upload coverage artifact
+        if: ${{ matrix.coverage == true && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-functional
+          path: tests/_output/functional.cov
+          if-no-files-found: ignore
+
+  wpunit:
+    env:
+      STRIPE_API_PUBLISHABLE_KEY: ${{ secrets.STRIPE_API_PUBLISHABLE_KEY }}
+      STRIPE_API_SECRET_KEY: ${{ secrets.STRIPE_API_SECRET_KEY }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.3', '8.1']
+        wordpress: ['6.8', '6.7', '6.3']
+        include:
+          - php: '8.3'
+            wordpress: '6.8'
+            coverage: true
+            xdebug: 1
+            hpos: 1
+          - php: '8.1'
+            wordpress: '6.3'
+            debug: '--debug'
+          - wordpress: '6.3'
+            hpos: 1
+      fail-fast: false
+    name: WPUnit in WP v${{ matrix.wordpress }} on PHP${{ matrix.php }}${{ matrix.hpos == 1 && ' HPOS' || '' }}${{ matrix.debug == '--debug' && ' Debug' || '' }}${{ matrix.coverage == true && ' +Coverage' || '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json, mbstring
+          tools: composer
+
+      - name: Install dependencies
+        run: |
+          cp .env.testing .env
+          rm -rf composer.lock
+          composer install
+          WP_VERSION=${{ matrix.wordpress }} SKIP_DB_CREATE=true SKIP_WP_SETUP=true composer installTestEnv
+
+      - name: Run WPUnit Tests
+        id: tests
+        continue-on-error: true
+        env:
+          USING_XDEBUG: ${{ matrix.xdebug }}
+          WP_VERSION: ${{ matrix.wordpress }}
+          PHP_VERSION: ${{ matrix.php }}
+        run: |
+          HPOS="${{ matrix.hpos }}" FILTER="wpunit --fail-fast ${{ matrix.coverage == true && '--coverage=wpunit.cov' || '' }} ${{ matrix.debug }}" composer dRunTestStandalone
+
+      - name: Retry on failure
+        id: retry
+        if: ${{ steps.tests.outcome == 'failure' }}
+        env:
+          USING_XDEBUG: ${{ matrix.xdebug }}
+          WP_VERSION: ${{ matrix.wordpress }}
+          PHP_VERSION: ${{ matrix.php }}
+        run: |
+          HPOS="${{ matrix.hpos }}" FILTER="wpunit ${{ matrix.coverage == true && '--coverage=wpunit.cov' || '' }} ${{ matrix.debug }}" composer dRunTestStandalone
+
+      - name: Fail if both attempts failed
+        if: ${{ steps.tests.outcome == 'failure' && steps.retry.outcome == 'failure' }}
+        run: exit 1
+
+      - name: Upload coverage artifact
+        if: ${{ matrix.coverage == true && always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-wpunit
+          path: tests/_output/wpunit.cov
+          if-no-files-found: ignore
+
+  coverage:
+    needs: [acceptance, functional, wpunit]
+    if: ${{ needs.acceptance.result == 'success' && needs.functional.result == 'success' && needs.wpunit.result == 'success' }}
+    runs-on: ubuntu-latest
+    name: Aggregate Coverage & Push to Coveralls
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: json, mbstring
+          tools: composer
+
+      - name: Install dependencies
+        run: |
+          composer global require phpunit/phpcov:^8 phpunit/php-code-coverage:^9 php-coveralls/php-coveralls
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: coverage-files
+          pattern: coverage-*
+          merge-multiple: true
+
+      - name: Merge coverage reports
+        run: |
+          mkdir -p tests/_output
+          echo "Coverage files structure:"
+          find coverage-files/ -name "*.cov" -type f 2>/dev/null || echo "No coverage files found"
+          if find coverage-files/ -name "*.cov" -type f | grep -q .; then
+            # Symlink Docker container path to CI checkout so phpcov can read source files.
+            sudo mkdir -p /var/www/html/wp-content/plugins
+            sudo ln -s "$GITHUB_WORKSPACE" /var/www/html/wp-content/plugins/wp-graphql-woocommerce
+            phpcov merge --clover=tests/_output/coverage.xml coverage-files
+          else
+            echo "No serialized coverage files to merge"
+            exit 0
+          fi
+
+      - name: Push Codecoverage to Coveralls.io
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          php-coveralls -v
+
+      - name: Upload coverage debug artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-debug
+          path: |
+            tests/_output/coverage.xml
+            tests/_output/coverage.json
+          if-no-files-found: ignore

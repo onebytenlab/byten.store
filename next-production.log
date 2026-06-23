@@ -1,0 +1,66 @@
+nohup: ignoring input
+
+> byten-frontend@0.1.0 start
+> next start
+
+▲ Next.js 16.2.9
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.105:3000
+✓ Ready in 281ms
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+GraphQL Error: Unexpected token '<', "<html>
+<h"... is not valid JSON
+Killed
