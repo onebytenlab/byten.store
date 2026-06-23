@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { addToCartServerAction } from '../app/actions';
 
 interface CartItemNode {
@@ -35,11 +36,22 @@ export default function CheckoutCart({ initialItems, initialTotal }: CheckoutCar
     if (result.success) {
       const updatedItems = items.filter((item) => item.key !== itemKey);
       setItems(updatedItems);
+      window.dispatchEvent(new Event("byten_cart_update"));
       
       if (updatedItems.length === 0) {
         setTotal('0 ₸');
       } else {
-        window.location.reload();
+        try {
+          const rawNum = initialTotal.replace(/[^\d]/g, '');
+          const currentTotalNum = parseInt(rawNum, 10) || 0;
+          const removedItem = items.find(i => i.key === itemKey);
+          const removedItemRawNum = removedItem?.total.replace(/[^\d]/g, '') || '0';
+          const removedPrice = parseInt(removedItemRawNum, 10) || 0;
+          const newTotalNum = Math.max(0, currentTotalNum - removedPrice);
+          setTotal(`${newTotalNum.toLocaleString('ru-RU')} ₸`);
+        } catch (e) {
+          setTotal('0 ₸');
+        }
       }
     } else {
       alert(`Ошибка при удалении товара: ${result.error}`);
@@ -52,7 +64,12 @@ export default function CheckoutCart({ initialItems, initialTotal }: CheckoutCar
       <h2 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '1rem', color: '#f3f4f6', borderBottom: '1px solid #374151', paddingBottom: '0.5rem' }}>Ваш заказ</h2>
       
       {items.length === 0 ? (
-        <p style={{ color: '#9ca3af', fontSize: '0.9rem', textAlign: 'center', margin: '1rem 0' }}>Корзина пуста. Вернитесь в каталог и добавьте товар.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', margin: '1rem 0' }}>
+          <p style={{ color: '#9ca3af', fontSize: '0.9rem', textAlign: 'center', margin: 0 }}>Корзина пуста. Вернитесь в каталог и добавьте товар.</p>
+          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#22d3ee', color: '#111827', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', fontSize: '0.9rem', fontWeight: 700, textDecoration: 'none', transition: 'background-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#06b6d4'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#22d3ee'}>
+            В каталог товаров
+          </Link>
+        </div>
       ) : (
         <div>
           {items.map((item) => {

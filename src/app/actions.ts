@@ -249,3 +249,36 @@ export async function createOrderAction(email: string) {
     return { success: false, error: e.message };
   }
 }
+
+export async function getHeaderMenuAction() {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 NextJS-Frontend',
+        'Host': 'api.byten.store'
+      },
+      body: JSON.stringify({
+        query: `
+          query GetHeaderMenu {
+            bytenSettings {
+              headerMenu {
+                label
+                url
+              }
+            }
+          }
+        `
+      }),
+      cache: 'no-store'
+    });
+
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json?.data?.bytenSettings?.headerMenu || [];
+  } catch (e) {
+    return [];
+  }
+}
