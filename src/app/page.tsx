@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import CategoryMenu from '../components/CategoryMenu';
 import CatalogGrid from '../components/CatalogGrid';
-import { getCartAction } from './actions';
+import { getCartAction, getFrontendFeaturesAction } from './actions';
 
 interface Category {
   slug: string;
@@ -28,7 +28,7 @@ interface FrontendFeature {
   description: string;
 }
 
-async function getProductsAndSettings() {
+async function getProducts() {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
     const res = await fetch(apiUrl, {
@@ -40,7 +40,7 @@ async function getProductsAndSettings() {
       },
       body: JSON.stringify({
         query: `
-          query GetProductsAndSettings {
+          query GetProducts {
             products(first: 50) {
               nodes {
                 id
@@ -60,32 +60,23 @@ async function getProductsAndSettings() {
                 }
               }
             }
-            bytenSettings {
-              features {
-                icon
-                title
-                description
-              }
-            }
           }
         `,
       }),
       cache: 'no-store'
     });
     const json = await res.json();
-    return {
-      products: json?.data?.products?.nodes || [],
-      features: json?.data?.bytenSettings?.features || []
-    };
+    return json?.data?.products?.nodes || [];
   } catch (error) {
-    return { products: [], features: [] };
+    return [];
   }
 }
 
 export default async function HomePage(props: {
   searchParams: Promise<{ category?: string }>;
 }) {
-  const { products, features } = await getProductsAndSettings();
+  const products = await getProducts();
+  const features = await getFrontendFeaturesAction();
   const resolvedSearchParams = await props.searchParams;
   const activeCategory = resolvedSearchParams?.category || 'all';
 
@@ -98,7 +89,7 @@ export default async function HomePage(props: {
         product.productCategories?.nodes?.some((cat) => cat.slug === activeCategory)
       );
 
-  const displayFeatures = features.length > 0 ? features : [
+  const displayFeatures = features && features.length > 0 ? features : [
     { icon: '⚡', title: 'Автовыдача', description: 'Код приходит на email сразу после оплаты' },
     { icon: '🛡️', title: '100% Безопасность', description: 'Лицензионные ключи и официальные пополнения' },
     { icon: '🤝', title: 'Поддержка', description: 'Поможем со всеми вопросами активации' }
