@@ -18,44 +18,42 @@ export async function addToCartServerAction(productId: number, quantity: number 
       headers['woocommerce-session'] = `Session ${existingSession}`;
     }
 
-    const query = quantity === 0 
-      ? `mutation RemoveFromCart($input: RemoveItemsFromCartInput!) {
-          removeItemsFromCart(input: $input) {
-            cart {
-              total
-            }
-          }
-         }`
-      : `mutation AddToCart($input: AddToCartInput!) {
-          addToCart(input: $input) {
-            cartItem {
-              key
-              quantity
-            }
-          }
-         }`;
+    const cartRes = await fetch(apiUrl, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        query: `query GetCartKeys { cart { contents { nodes { key quantity product { node { databaseId } } } } } }`
+      }),
+      cache: 'no-store'
+    });
+    const cartJson = await cartRes.json();
+    const targetItem = cartJson?.data?.cart?.contents?.nodes?.find((node: any) => node.product?.node?.databaseId === productId);
 
-    const variables = quantity === 0
-      ? { input: { all: true, keys: [] } } 
-      : { input: { productId: productId, quantity: quantity } };
+    let query = '';
+    let variables: any = {};
 
     if (quantity === 0) {
-      const cartRes = await fetch(apiUrl, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          query: `query GetCartKeys { cart { contents { nodes { key product { node { databaseId } } } } } }`
-        }),
-        cache: 'no-store'
-      });
-      const cartJson = await cartRes.json();
-      const targetItem = cartJson?.data?.cart?.contents?.nodes?.find((node: any) => node.product?.node?.databaseId === productId);
-      if (targetItem?.key) {
-        variables.input.keys = [targetItem.key];
-        variables.input.all = false;
-      } else {
-        return { success: true };
-      }
+      if (!targetItem?.key) return { success: true };
+      query = `mutation RemoveFromCart($input: RemoveItemsFromCartInput!) {
+        removeItemsFromCart(input: $input) {
+          cart { total }
+        }
+      }`;
+      variables = { input: { keys: [targetItem.key], all: false } };
+    } else if (targetItem?.key) {
+      query = `mutation UpdateCartQty($input: UpdateItemQuantitiesInput!) {
+        updateItemQuantities(input: $input) {
+          items { key quantity }
+        }
+      }`;
+      variables = { input: { items: [{ key: targetItem.key, quantity: quantity }] } };
+    } else {
+      query = `mutation AddToCart($input: AddToCartInput!) {
+        addToCart(input: $input) {
+          cartItem { key quantity }
+        }
+      }`;
+      variables = { input: { productId: productId, quantity: quantity } };
     }
 
     const res = await fetch(apiUrl, {

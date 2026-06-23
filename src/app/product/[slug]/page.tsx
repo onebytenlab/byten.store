@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import Link from 'next/link';
 import ProductAction from '../../../components/ProductAction';
+import BackButton from '../../../components/BackButton';
 import { getCartAction } from '../../actions';
 
 interface ProductData {
@@ -105,9 +106,7 @@ export default async function ProductPage({
         </header>
 
         <div style={{ marginBottom: '1rem' }}>
-          <Link href="/" style={{ color: '#9ca3af', textDecoration: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', transition: 'color 0.2s' }}>
-            ← Назад в каталог
-          </Link>
+          <BackButton />
         </div>
 
         <div className="product-layout">

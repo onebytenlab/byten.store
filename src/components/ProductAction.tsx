@@ -14,7 +14,7 @@ interface ProductActionProps {
 export default function ProductAction({ productId, productName, price, isInitiallyInCart }: ProductActionProps) {
   const router = useRouter();
   const [status, setStatus] = useState<'idle' | 'loading' | 'added'>(isInitiallyInCart ? 'added' : 'idle');
-  const [quantity, setQuantity] = useState<number>(isInitiallyInCart ? 1 : 1);
+  const [quantity, setQuantity] = useState<number>(1);
 
   async function handleAddToCartButtonClick(e: React.MouseEvent) {
     e.preventDefault();
@@ -58,6 +58,7 @@ export default function ProductAction({ productId, productName, price, isInitial
     }
 
     setQuantity(newQty);
+
     if (status === 'added') {
       setStatus('loading');
       const cleanId = typeof productId === 'string' ? parseInt(productId) || 0 : productId;
@@ -72,7 +73,7 @@ export default function ProductAction({ productId, productName, price, isInitial
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', backgroundColor: '#1f2937', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #374151', marginBottom: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', backgroundColor: '#1f2937', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #374151', marginBottom: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ color: '#9ca3af', fontSize: '0.85rem', fontWeight: 600 }}>Цена товара:</span>
         <span 
@@ -92,7 +93,7 @@ export default function ProductAction({ productId, productName, price, isInitial
             -
           </button>
           <span style={{ color: '#fff', fontWeight: 700, fontSize: '1rem', minWidth: '1.5rem', textAlign: 'center' }}>
-            {status === 'added' && quantity === 1 ? 1 : quantity}
+            {quantity}
           </span>
           <button 
             onClick={() => updateQuantity(quantity + 1)}

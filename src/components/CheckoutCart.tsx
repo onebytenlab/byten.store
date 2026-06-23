@@ -60,17 +60,28 @@ export default function CheckoutCart({ initialItems, initialTotal }: CheckoutCar
             const isDeleting = loadingKey === item.key;
             
             return (
-              <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', fontSize: '0.95rem', opacity: isDeleting ? 0.5 : 1 }}>
-                <span style={{ color: '#f3f4f6', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div key={item.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', fontSize: '0.95rem', opacity: isDeleting ? 0.5 : 1 }}>
+                <span style={{ color: '#f3f4f6', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <button
                     onClick={() => handleRemoveItem(dbId, item.key)}
                     disabled={isDeleting}
-                    style={{ backgroundColor: 'transparent', color: '#ef4444', border: 'none', cursor: isDeleting ? 'not-allowed' : 'pointer', fontWeight: 700, padding: '0 0.25rem', fontSize: '1.1rem' }}
+                    style={{ backgroundColor: 'transparent', color: '#ef4444', border: 'none', cursor: isDeleting ? 'not-allowed' : 'pointer', fontWeight: 900, padding: '0 0.5rem 0 0', fontSize: '2.2rem', lineHeight: '0.8', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '2.5rem', minHeight: '2.5rem', transition: 'transform 0.1s, color 0.1s' }}
                     title="Удалить из корзины"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.2)';
+                      e.currentTarget.style.color = '#f87171';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.color = '#ef4444';
+                    }}
                   >
                     ×
                   </button>
-                  {item.product?.node?.name} <span style={{ color: '#9ca3af', fontSize: '0.85rem' }}>x{item.quantity}</span>
+                  <span style={{ display: 'inline-flex', flexDirection: 'column' }}>
+                    <span>{item.product?.node?.name}</span>
+                    <span style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '0.1rem' }}>Количество: {item.quantity} шт.</span>
+                  </span>
                 </span>
                 <span style={{ fontWeight: 700, color: '#22d3ee' }} dangerouslySetInnerHTML={{ __html: item.total }} />
               </div>

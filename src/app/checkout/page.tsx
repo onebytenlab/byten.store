@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import CheckoutForm from '../../components/CheckoutForm';
 import CheckoutCart from '../../components/CheckoutCart';
+import BackButton from '../../components/BackButton';
 import { getCartAction } from '../actions';
 
 export const dynamic = 'force-dynamic';
@@ -41,9 +42,7 @@ export default async function CheckoutPage() {
         </header>
 
         <div style={{ marginBottom: '1.5rem' }}>
-          <Link href="/" style={{ color: '#9ca3af', textDecoration: 'none', fontWeight: 600, fontSize: '0.85rem' }}>
-            ← Вернуться в каталог
-          </Link>
+          <BackButton />
         </div>
 
         <CheckoutCart initialItems={cartItems} initialTotal={cartTotal} />
