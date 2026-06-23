@@ -35,11 +35,6 @@ export default async function CheckoutPage() {
   return (
     <main style={{ backgroundColor: '#111827', color: '#fff', minHeight: '100vh', padding: '1rem', fontFamily: 'sans-serif' }}>
       <div style={{ maxWidth: '32rem', margin: '0 auto' }}>
-        
-        <header style={{ marginBottom: '2rem', borderBottom: '1px solid #1f2937', paddingBottom: '1rem', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#22d3ee', margin: 0 }}>BYTEN.STORE</h1>
-          <p style={{ color: '#9ca3af', marginTop: '0.25rem', fontSize: '0.85rem' }}>Оформление заказа</p>
-        </header>
 
         <div style={{ marginBottom: '1.5rem' }}>
           <BackButton />

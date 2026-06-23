@@ -99,11 +99,6 @@ export default async function ProductPage({
       `}} />
 
       <div style={{ maxWidth: '48rem', margin: '0 auto' }}>
-        
-        <header style={{ marginBottom: '1.5rem', borderBottom: '1px solid #1f2937', paddingBottom: '1rem', textAlign: 'center' }}>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#22d3ee', margin: 0, letterSpacing: '-0.03em' }}>BYTEN.STORE</h1>
-          <p style={{ color: '#9ca3af', marginTop: '0.25rem', fontSize: '0.85rem' }}>Магазин цифровых кодов и доступов</p>
-        </header>
 
         <div style={{ marginBottom: '1rem' }}>
           <BackButton />
