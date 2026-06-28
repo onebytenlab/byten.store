@@ -13,10 +13,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "BYTEN.ONLINE",
-};
-
 export default async function RootLayout({
   children,
 }: Readonly<{

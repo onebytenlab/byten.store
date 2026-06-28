@@ -7,12 +7,102 @@ nohup: ignoring input
 - Local:         http://localhost:3000
 - Network:       http://192.168.0.105:3000
 - Environments: .env.local
-✓ Ready in 670ms
-Error: An IO error occurred while attempting to create and acquire the lockfile
-    at ignore-listed frames {
-  [cause]: Error: Permission denied (os error 13)
-      at ignore-listed frames {
-    code: 'GenericFailure'
-  }
-}
-[?25h
+✓ Ready in 475ms
+
+⚠ Slow filesystem detected. The benchmark took 398ms. If /home/uzer/byten-frontend/.next/dev is a network drive, consider moving it to a local folder.
+See more: https://nextjs.org/docs/app/guides/local-development
+○ Compiling /product/[slug] ...
+ GET /product/steam-1000 200 in 7.4s (next.js: 4.3s, application-code: 3.1s)
+ POST /product/steam-1000 200 in 814ms (next.js: 35ms, application-code: 778ms)
+  └─ ƒ getCartAction() in 761ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 613ms (next.js: 34ms, application-code: 579ms)
+  └─ ƒ getCartAction() in 566ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 667ms (next.js: 24ms, application-code: 643ms)
+  └─ ƒ getCartAction() in 632ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 789ms (next.js: 51ms, application-code: 738ms)
+  └─ ƒ getCartAction() in 722ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 608ms (next.js: 25ms, application-code: 583ms)
+  └─ ƒ getCartAction() in 570ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 627ms (next.js: 21ms, application-code: 606ms)
+  └─ ƒ getCartAction() in 596ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 732ms (next.js: 22ms, application-code: 710ms)
+  └─ ƒ getCartAction() in 697ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 490ms (next.js: 22ms, application-code: 468ms)
+  └─ ƒ getCartAction() in 456ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 564ms (next.js: 21ms, application-code: 542ms)
+  └─ ƒ getCartAction() in 532ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 679ms (next.js: 21ms, application-code: 658ms)
+  └─ ƒ getCartAction() in 645ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 670ms (next.js: 29ms, application-code: 640ms)
+  └─ ƒ getCartAction() in 629ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 797ms (next.js: 20ms, application-code: 776ms)
+  └─ ƒ getCartAction() in 764ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 556ms (next.js: 20ms, application-code: 537ms)
+  └─ ƒ getCartAction() in 526ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 574ms (next.js: 20ms, application-code: 554ms)
+  └─ ƒ getCartAction() in 544ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 724ms (next.js: 35ms, application-code: 689ms)
+  └─ ƒ getCartAction() in 673ms src/app/actions/cart.ts
+ PPersisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+653ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 927ms (next.js: 28ms, application-code: 899ms)
+  └─ ƒ getCartAction() in 883ms src/app/actions/cart.ts
+✓ Compiled in 337ms
+ GET /product/steam-1000 200 in 176ms (next.js: 24ms, application-code: 152ms)
+ POST /product/steam-1000 200 in 799ms (next.js: 40ms, application-code: 759ms)
+  └─ ƒ getCartAction() in 734ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 689ms (next.js: 20ms, application-code: 669ms)
+  └─ ƒ getCartAction() in 661ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 607ms (next.js: 41ms, application-code: 566ms)
+  └─ ƒ getCartAction() in 551ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 594ms (next.js: 32ms, application-code: 561ms)
+  └─ ƒ getCartAction() in 540ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 461ms (next.js: 27ms, application-code: 434ms)
+  └─ ƒ getCartAction() in 424ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 463ms (next.js: 27ms, application-code: 435ms)
+  └─ ƒ getCartAction() in 422ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 387ms (next.js: 19ms, application-code: 368ms)
+  └─ ƒ getCartAction() in 361ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 554ms (next.js: 21ms, application-code: 533ms)
+  └─ ƒ getCartAction() in 522ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 422ms (next.js: 19ms, application-code: 403ms)
+  └─ ƒ getCartAction() in 395ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 529ms (next.js: 20ms, application-code: 509ms)
+  └─ ƒ getCartAction() in 500ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 429ms (next.js: 22ms, application-code: 407ms)
+  └─ ƒ getCartAction() in 398ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 388ms (next.js: 20ms, application-code: 368ms)
+  └─ ƒ getCartAction() in 360ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 459ms (next.js: 23ms, application-code: 436ms)
+  └─ ƒ getCartAction() in 420ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 442ms (next.js: 20ms, application-code: 423ms)
+  └─ ƒ getCartAction() in 414ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 564ms (next.js: 28ms, application-code: 536ms)
+  └─ ƒ getCartAction() in 518ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 400ms (next.js: 20ms, application-code: 381ms)
+  └─ ƒ getCartAction() in 372ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 532ms (next.js: 21ms, application-code: 511ms)
+  └─ ƒ getCartAction() in 499ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 478ms (next.js: 20ms, application-code: 458ms)
+  └─ ƒ getCartAction() in 451ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 463ms (next.js: 20ms, application-code: 443ms)
+  └─ ƒ getCartAction() in 433ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 385ms (next.js: 20ms, application-code: 365ms)
+  └─ ƒ getCartAction() in 358ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 433ms (next.js: 20ms, application-code: 413ms)
+  └─ ƒ getCartAction() in 403ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 371ms (next.js: 20ms, application-code: 350ms)
+  └─ ƒ getCartAction() in 344ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 396ms (next.js: 20ms, application-code: 376ms)
+  └─ ƒ getCartAction() in 369ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 452ms (next.js: 20ms, application-code: 432ms)
+  └─ ƒ getCartAction() in 424ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 450ms (next.js: 28ms, application-code: 422ms)
+  └─ ƒ getCartAction() in 410ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 451ms (next.js: 19ms, application-code: 433ms)
+  └─ ƒ getCartAction() in 423ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 542ms (next.js: 32ms, application-code: 511ms)
+  └─ ƒ getCartAction() in 500ms src/app/actions/cart.ts
+ POST /product/steam-1000 200 in 514ms (next.js: 26ms, application-code: 489ms)
+  └─ ƒ getCartAction() in 476ms src/app/actions/cart.ts

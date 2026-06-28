@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { Metadata } from 'next';
+import { cache } from 'react';
 import Link from 'next/link';
 import ProductAction from '../../../components/ProductAction';
 import BackButton from '../../../components/BackButton';
@@ -18,101 +19,167 @@ interface ProductData {
   price?: string;
 }
 
+const getCachedProductAndSettings = cache(async (slug: string) => {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
+    const cleanSlug = slug.replace(/\//g, '').trim();
+    
+    const tryFetch = async (idValue: string, idType: string) => {
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 NextJS-Frontend',
+          'Host': 'api.byten.store'
+        },
+        body: JSON.stringify({
+          query: `
+            query GetProductAndGeneralSettings($id: ID!, $idType: ProductIdType!) {
+              product(id: $id, idType: $idType) {
+                id
+                databaseId
+                name
+                slug
+                description
+                image {
+                  sourceUrl
+                }
+                ... on SimpleProduct {
+                  price
+                }
+              }
+              generalSettings {
+                title
+              }
+            }
+          `,
+          variables: { id: idValue, idType }
+        }),
+        cache: 'no-store'
+      });
+      if (!res.ok) return null;
+      const json = await res.json();
+      return json?.data || null;
+    };
+
+    let data = await tryFetch(cleanSlug, 'SLUG');
+    
+    if (!data?.product) {
+      data = await tryFetch(cleanSlug.toLowerCase(), 'SLUG');
+    }
+    
+    if (!data?.product) {
+      const listRes = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 NextJS-Frontend',
+          'Host': 'api.byten.store'
+        },
+        body: JSON.stringify({
+          query: `
+            query FindProductBySlugList {
+              products(first: 50) {
+                nodes {
+                  id
+                  databaseId
+                  name
+                  slug
+                  description
+                  image {
+                    sourceUrl
+                  }
+                  ... on SimpleProduct {
+                    price
+                  }
+                }
+              }
+              generalSettings {
+                title
+              }
+            }
+          `
+        }),
+        cache: 'no-store'
+      });
+      const listJson = await listRes.json();
+      const allProducts = listJson?.data?.products?.nodes || [];
+      const matchedProduct = allProducts.find((p: any) => p.slug.toLowerCase() === cleanSlug.toLowerCase());
+      
+      if (matchedProduct) {
+        return {
+          product: matchedProduct,
+          siteTitle: listJson?.data?.generalSettings?.title || 'BYTEN.STORE'
+        };
+      }
+    }
+
+    return {
+      product: data?.product || null,
+      siteTitle: data?.generalSettings?.title || 'BYTEN.STORE'
+    };
+  } catch (e) {
+    return { product: null, siteTitle: 'BYTEN.STORE' };
+  }
+});
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
+  let fallbackSlug = "";
   try {
     const resolvedParams = await params;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
-    const baseApiUrl = apiUrl.replace('/graphql', '');
-    
-    const restUrl = `${baseApiUrl}/wp-json/rankmath/v1/getHead?url=${encodeURIComponent(baseApiUrl + '/product/' + resolvedParams.slug + '/')}`;
-    const restRes = await fetch(restUrl, { cache: 'no-store' });
-    
-    if (restRes.ok) {
-      const restJson = await restRes.json();
-      if (restJson?.head) {
-        const headHtml = restJson.head;
-        
-        const titleMatch = headHtml.match(/<title>([\s\S]*?)<\/title>/i);
-        const descMatch = headHtml.match(/<meta\s+name=["']description["']\s+content=["']([\s\S]*?)["']/i);
-        const robotsMatch = headHtml.match(/<meta\s+name=["']robots["']\s+content=["']([\s\S]*?)["']/i);
-        const ogTitleMatch = headHtml.match(/<meta\s+property=["']og:title["']\s+content=["']([\s\S]*?)["']/i);
-        const ogDescMatch = headHtml.match(/<meta\s+property=["']og:description["']\s+content=["']([\s\S]*?)["']/i);
+    fallbackSlug = resolvedParams.slug;
+    const { product, siteTitle } = await getCachedProductAndSettings(fallbackSlug);
 
-        const pageTitle = titleMatch ? titleMatch[1].trim() : "Купить цифровой товар";
-        const pageDesc = descMatch ? descMatch[1].trim() : "Цифровые коды пополнения и доступы. Автовыдача сразу после оплаты.";
-        const robotsStr = robotsMatch ? robotsMatch[1].toLowerCase() : "";
+    const pageTitle = product?.name ? product.name + " | " + siteTitle : "Купить товар | " + siteTitle;
+    let cleanDesc = product?.description 
+      ? product.description.replace(/<\/?[^>]+(>|$)/g, "").substring(0, 160).trim() + "..." 
+      : "Купить цифровой товар в магазине цифровых кодов " + siteTitle + ". Автовыдача сразу после оплаты.";
+    
+    cleanDesc = cleanDesc
+      .replace(/&#8211;/g, '–')
+      .replace(/&amp;#8211;/g, '–')
+      .replace(/&#124;/g, '|')
+      .replace(/&amp;#124;/g, '|');
 
-        return {
-          title: pageTitle,
-          description: pageDesc,
-          robots: {
-            index: !robotsStr.includes('noindex'),
-            follow: !robotsStr.includes('nofollow'),
-          },
-          openGraph: {
-            title: ogTitleMatch ? ogTitleMatch[1].trim() : pageTitle,
-            description: ogDescMatch ? ogDescMatch[1].trim() : pageDesc,
-            type: 'article',
-            url: `https://byten.store{resolvedParams.slug}`,
-          },
-          twitter: {
-            card: 'summary_large_image',
-            title: ogTitleMatch ? ogTitleMatch[1].trim() : pageTitle,
-            description: ogDescMatch ? ogDescMatch[1].trim() : pageDesc,
-          }
-        };
+    const imageUrl = product?.image?.sourceUrl || "";
+    const activeSlug = product?.slug || fallbackSlug;
+
+    return {
+      metadataBase: new URL('https://byten.store'),
+      title: pageTitle,
+      description: cleanDesc,
+      robots: {
+        index: true,
+        follow: true,
+      },
+      openGraph: {
+        title: pageTitle,
+        description: cleanDesc,
+        type: 'article',
+        url: '/product/' + activeSlug,
+        images: imageUrl ? [{ url: imageUrl }] : [],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: pageTitle,
+        description: cleanDesc,
+        images: imageUrl ? [imageUrl] : [],
       }
-    }
+    };
   } catch (e) {}
 
   return {
-    title: "Купить цифровой товар | BYTEN.STORE",
-    description: "Цифровые коды пополнения и доступы. Автовыдача сразу после оплаты."
+    metadataBase: new URL('https://byten.store'),
+    title: "Купить цифровой товар | BYTEN.ONLINE",
+    description: "Цифровые коды пополнения и доступы. Автовыдача сразу после оплаты.",
+    openGraph: {
+      url: '/product/' + fallbackSlug,
+    }
   };
-}
-
-async function getProductBySlug(slug: string): Promise<ProductData | null> {
-  try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
-    const res = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 NextJS-Frontend',
-        'Host': 'api.byten.store'
-      },
-      body: JSON.stringify({
-        query: `
-          query GetProductBySlug($id: ID!) {
-            product(id: $id, idType: SLUG) {
-              id
-              databaseId
-              name
-              slug
-              description
-              image {
-                sourceUrl
-              }
-              ... on SimpleProduct {
-                price
-              }
-            }
-          }
-        `,
-        variables: { id: slug }
-      }),
-      cache: 'no-store'
-    });
-
-    const json = await res.json();
-    return json?.data?.product || null;
-  } catch (error) {
-    return null;
-  }
 }
 
 export default async function ProductPage({
@@ -121,7 +188,7 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const resolvedParams = await params;
-  const product = await getProductBySlug(resolvedParams.slug);
+  const { product } = await getCachedProductAndSettings(resolvedParams.slug);
 
   if (!product) {
     return (

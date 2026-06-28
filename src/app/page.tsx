@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 import CategoryMenu from '../components/CategoryMenu';
 import CatalogGrid from '../components/CatalogGrid';
-import { getCartAction, getFrontendFeaturesAction } from './actions';
+import { getCartAction, getFrontendFeaturesAction, getGeneralSettingsAction } from './actions';
 
 interface Category {
   slug: string;
@@ -31,6 +31,10 @@ interface FrontendFeature {
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
+    const settings = await getGeneralSettingsAction();
+    const siteTitle = settings?.title || "BYTEN.ONLINE";
+    const siteDesc = settings?.description || "Купить цифровые коды пополнения и доступы. Автовыдача сразу после оплаты.";
+
     const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
     const baseApiUrl = apiUrl.replace('/graphql', '');
     
@@ -48,9 +52,21 @@ export async function generateMetadata(): Promise<Metadata> {
         const ogTitleMatch = headHtml.match(/<meta\s+property=["']og:title["']\s+content=["']([\s\S]*?)["']/i);
         const ogDescMatch = headHtml.match(/<meta\s+property=["']og:description["']\s+content=["']([\s\S]*?)["']/i);
 
-        const pageTitle = titleMatch ? titleMatch[1].trim() : "BYTEN.STORE | Магазин цифровых кодов";
-        const pageDesc = descMatch ? descMatch[1].trim() : "Купить цифровые коды пополнения и доступы для Steam, PlayStation, Xbox. Автовыдача сразу после оплаты.";
-        const robotsStr = robotsMatch ? robotsMatch[1].toLowerCase() : "";
+        let pageTitle = titleMatch && titleMatch[1] ? titleMatch[1].trim() : `${siteTitle} | Магазин цифровых кодов`;
+        let pageDesc = descMatch && descMatch[1] ? descMatch[1].trim() : siteDesc;
+        const robotsStr = robotsMatch && robotsMatch[1] ? robotsMatch[1].toLowerCase() : "";
+
+        pageTitle = pageTitle
+          .replace(/&#124;/g, '|')
+          .replace(/&amp;#124;/g, '|')
+          .replace(/&gt;/g, '>')
+          .replace(/&lt;/g, '<');
+
+        pageDesc = pageDesc
+          .replace(/&#124;/g, '|')
+          .replace(/&amp;#124;/g, '|')
+          .replace(/&gt;/g, '>')
+          .replace(/&lt;/g, '<');
 
         return {
           title: pageTitle,
@@ -60,24 +76,29 @@ export async function generateMetadata(): Promise<Metadata> {
             follow: !robotsStr.includes('nofollow'),
           },
           openGraph: {
-            title: ogTitleMatch ? ogTitleMatch[1].trim() : pageTitle,
-            description: ogDescMatch ? ogDescMatch[1].trim() : pageDesc,
+            title: ogTitleMatch && ogTitleMatch[1] ? ogTitleMatch[1].trim().replace(/&#124;/g, '|').replace(/&amp;#124;/g, '|') : pageTitle,
+            description: ogDescMatch && ogDescMatch[1] ? ogDescMatch[1].trim().replace(/&#124;/g, '|').replace(/&amp;#124;/g, '|') : pageDesc,
             type: 'website',
             url: 'https://byten.store',
           },
           twitter: {
             card: 'summary_large_image',
-            title: ogTitleMatch ? ogTitleMatch[1].trim() : pageTitle,
-            description: ogDescMatch ? ogDescMatch[1].trim() : pageDesc,
+            title: ogTitleMatch && ogTitleMatch[1] ? ogTitleMatch[1].trim().replace(/&#124;/g, '|').replace(/&amp;#124;/g, '|') : pageTitle,
+            description: ogDescMatch && ogDescMatch[1] ? ogDescMatch[1].trim().replace(/&#124;/g, '|').replace(/&amp;#124;/g, '|') : pageDesc,
           }
         };
       }
     }
+
+    return {
+      title: `${siteTitle} | Магазин цифровых кодов`,
+      description: siteDesc
+    };
   } catch (e) {}
 
   return {
-    title: "BYTEN.STORE | Магазин цифровых кодов",
-    description: "Купить цифровые коды пополнения и доступы для Steam, PlayStation, Xbox. Автовыдача сразу после оплаты."
+    title: "BYTEN.ONLINE | Магазин цифровых кодов",
+    description: "Купить цифровые коды пополнения и доступы. Автовыдача сразу после оплаты."
   };
 }
 
@@ -144,7 +165,7 @@ export default async function HomePage(props: {
 
   const displayFeatures = features && features.length > 0 ? features : [
     { icon: '⚡', title: 'Автовыдача', description: 'Код приходит на email сразу после оплаты' },
-    { icon: '🛡️', title: '100% Безопасность', description: 'Лицензионные ключи и официальные пополнения' },
+    { icon: '🛡️', title: '100% Безопасность', description: 'Лицензионные ключи и official пополнения' },
     { icon: '🤝', title: 'Поддержка', description: 'Поможем со всеми вопросами активации' }
   ];
 
