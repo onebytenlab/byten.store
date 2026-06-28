@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 
+import { Metadata } from 'next';
 import Link from 'next/link';
 import ProductAction from '../../../components/ProductAction';
 import BackButton from '../../../components/BackButton';
@@ -15,6 +16,63 @@ interface ProductData {
     sourceUrl: string;
   };
   price?: string;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  try {
+    const resolvedParams = await params;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
+    const baseApiUrl = apiUrl.replace('/graphql', '');
+    
+    const restUrl = `${baseApiUrl}/wp-json/rankmath/v1/getHead?url=${encodeURIComponent(baseApiUrl + '/product/' + resolvedParams.slug + '/')}`;
+    const restRes = await fetch(restUrl, { cache: 'no-store' });
+    
+    if (restRes.ok) {
+      const restJson = await restRes.json();
+      if (restJson?.head) {
+        const headHtml = restJson.head;
+        
+        const titleMatch = headHtml.match(/<title>([\s\S]*?)<\/title>/i);
+        const descMatch = headHtml.match(/<meta\s+name=["']description["']\s+content=["']([\s\S]*?)["']/i);
+        const robotsMatch = headHtml.match(/<meta\s+name=["']robots["']\s+content=["']([\s\S]*?)["']/i);
+        const ogTitleMatch = headHtml.match(/<meta\s+property=["']og:title["']\s+content=["']([\s\S]*?)["']/i);
+        const ogDescMatch = headHtml.match(/<meta\s+property=["']og:description["']\s+content=["']([\s\S]*?)["']/i);
+
+        const pageTitle = titleMatch ? titleMatch[1].trim() : "Купить цифровой товар";
+        const pageDesc = descMatch ? descMatch[1].trim() : "Цифровые коды пополнения и доступы. Автовыдача сразу после оплаты.";
+        const robotsStr = robotsMatch ? robotsMatch[1].toLowerCase() : "";
+
+        return {
+          title: pageTitle,
+          description: pageDesc,
+          robots: {
+            index: !robotsStr.includes('noindex'),
+            follow: !robotsStr.includes('nofollow'),
+          },
+          openGraph: {
+            title: ogTitleMatch ? ogTitleMatch[1].trim() : pageTitle,
+            description: ogDescMatch ? ogDescMatch[1].trim() : pageDesc,
+            type: 'article',
+            url: `https://byten.store{resolvedParams.slug}`,
+          },
+          twitter: {
+            card: 'summary_large_image',
+            title: ogTitleMatch ? ogTitleMatch[1].trim() : pageTitle,
+            description: ogDescMatch ? ogDescMatch[1].trim() : pageDesc,
+          }
+        };
+      }
+    }
+  } catch (e) {}
+
+  return {
+    title: "Купить цифровой товар | BYTEN.STORE",
+    description: "Цифровые коды пополнения и доступы. Автовыдача сразу после оплаты."
+  };
 }
 
 async function getProductBySlug(slug: string): Promise<ProductData | null> {

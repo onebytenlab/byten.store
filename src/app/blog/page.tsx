@@ -1,7 +1,8 @@
+export const dynamic = 'force-dynamic';
+
+import { Metadata } from 'next';
 import { getBlogPostsAction } from '../actions';
 import BackButton from '../../components/BackButton';
-
-export const dynamic = 'force-dynamic';
 
 interface BlogPostNode {
   id: string;
@@ -13,6 +14,58 @@ interface BlogPostNode {
     node: {
       sourceUrl: string;
     };
+  };
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
+    const baseApiUrl = apiUrl.replace('/graphql', '');
+    
+    const restUrl = `${baseApiUrl}/wp-json/rankmath/v1/getHead?url=${encodeURIComponent(baseApiUrl + '/blog')}`;
+    const restRes = await fetch(restUrl, { cache: 'no-store' });
+    
+    if (restRes.ok) {
+      const restJson = await restRes.json();
+      if (restJson?.head) {
+        const headHtml = restJson.head;
+        
+        const titleMatch = headHtml.match(/<title>([\s\S]*?)<\/title>/i);
+        const descMatch = headHtml.match(/<meta\s+name=["']description["']\s+content=["']([\s\S]*?)["']/i);
+        const robotsMatch = headHtml.match(/<meta\s+name=["']robots["']\s+content=["']([\s\S]*?)["']/i);
+        const ogTitleMatch = headHtml.match(/<meta\s+property=["']og:title["']\s+content=["']([\s\S]*?)["']/i);
+        const ogDescMatch = headHtml.match(/<meta\s+property=["']og:description["']\s+content=["']([\s\S]*?)["']/i);
+
+        const pageTitle = (titleMatch && titleMatch[1]) ? titleMatch[1].trim() : "Блог игрового мира | BYTEN.STORE";
+        const pageDesc = (descMatch && descMatch[1]) ? descMatch[1].trim() : "Полезные статьи, игровые гайды и инструкции по активации ключей на BYTEN.STORE.";
+        const robotsStr = (robotsMatch && robotsMatch[1]) ? robotsMatch[1].toLowerCase() : "";
+
+        return {
+          title: pageTitle,
+          description: pageDesc,
+          robots: {
+            index: !robotsStr.includes('noindex'),
+            follow: !robotsStr.includes('nofollow'),
+          },
+          openGraph: {
+            title: (ogTitleMatch && ogTitleMatch[1]) ? ogTitleMatch[1].trim() : pageTitle,
+            description: (ogDescMatch && ogDescMatch[1]) ? ogDescMatch[1].trim() : pageDesc,
+            type: 'website',
+            url: 'https://byten.store',
+          },
+          twitter: {
+            card: 'summary_large_image',
+            title: (ogTitleMatch && ogTitleMatch[1]) ? ogTitleMatch[1].trim() : pageTitle,
+            description: (ogDescMatch && ogDescMatch[1]) ? ogDescMatch[1].trim() : pageDesc,
+          }
+        };
+      }
+    }
+  } catch (e) {}
+
+  return {
+    title: "Блог игрового мира | BYTEN.STORE",
+    description: "Полезные статьи, игровые гайды и инструкции по активации ключей на BYTEN.STORE."
   };
 }
 

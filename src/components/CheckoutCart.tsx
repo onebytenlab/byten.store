@@ -24,8 +24,21 @@ interface CheckoutCartProps {
 
 export default function CheckoutCart({ initialItems, initialTotal }: CheckoutCartProps) {
   const [items, setItems] = useState<CartItemNode[]>(initialItems);
-  const [total, setTotal] = useState<string>(initialTotal);
+  const [total, setTotal] = useState<string>(formatWooCommercePrice(initialTotal));
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
+
+  function formatWooCommercePrice(priceStr: string): string {
+    try {
+      const cleanHtml = priceStr.replace(/<\/?[^>]+(>|$)/g, "");
+      const onlyDigits = cleanHtml.replace(/[^\d]/g, '');
+      if (!onlyDigits) return '0 ₸';
+      const parsedNum = parseInt(onlyDigits, 10);
+      const mainValue = Math.floor(parsedNum / 100);
+      return `${mainValue.toLocaleString('ru-RU')} ₸`;
+    } catch (e) {
+      return priceStr;
+    }
+  }
 
   async function handleRemoveItem(productId: number, itemKey: string) {
     if (loadingKey) return;
@@ -42,13 +55,14 @@ export default function CheckoutCart({ initialItems, initialTotal }: CheckoutCar
         setTotal('0 ₸');
       } else {
         try {
-          const rawNum = initialTotal.replace(/[^\d]/g, '');
-          const currentTotalNum = parseInt(rawNum, 10) || 0;
-          const removedItem = items.find(i => i.key === itemKey);
-          const removedItemRawNum = removedItem?.total.replace(/[^\d]/g, '') || '0';
-          const removedPrice = parseInt(removedItemRawNum, 10) || 0;
-          const newTotalNum = Math.max(0, currentTotalNum - removedPrice);
-          setTotal(`${newTotalNum.toLocaleString('ru-RU')} ₸`);
+          let currentTotalNum = 0;
+          updatedItems.forEach(item => {
+            const cleanHtml = item.total.replace(/<\/?[^>]+(>|$)/g, "");
+            const onlyDigits = cleanHtml.replace(/[^\d]/g, '');
+            const parsedNum = parseInt(onlyDigits, 10) || 0;
+            currentTotalNum += Math.floor(parsedNum / 100);
+          });
+          setTotal(`${currentTotalNum.toLocaleString('ru-RU')} ₸`);
         } catch (e) {
           setTotal('0 ₸');
         }
@@ -100,7 +114,7 @@ export default function CheckoutCart({ initialItems, initialTotal }: CheckoutCar
                     <span style={{ color: '#9ca3af', fontSize: '0.85rem', marginTop: '0.1rem' }}>Количество: {item.quantity} шт.</span>
                   </span>
                 </span>
-                <span style={{ fontWeight: 700, color: '#22d3ee' }} dangerouslySetInnerHTML={{ __html: item.total }} />
+                <span style={{ fontWeight: 700, color: '#22d3ee' }} dangerouslySetInnerHTML={{ __html: formatWooCommercePrice(item.total) }} />
               </div>
             );
           })}

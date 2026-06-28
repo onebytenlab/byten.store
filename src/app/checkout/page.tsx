@@ -1,10 +1,11 @@
+export const dynamic = 'force-dynamic';
+
+import { Metadata } from 'next';
 import Link from 'next/link';
 import CheckoutForm from '../../components/CheckoutForm';
 import CheckoutCart from '../../components/CheckoutCart';
 import BackButton from '../../components/BackButton';
 import { getCartAction } from '../actions';
-
-export const dynamic = 'force-dynamic';
 
 interface CartItemNode {
   key: string;
@@ -26,6 +27,13 @@ interface CartData {
     nodes: CartItemNode[];
   };
 }
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function CheckoutPage() {
   const cart: CartData | null = await getCartAction();

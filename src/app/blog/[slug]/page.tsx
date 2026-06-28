@@ -1,10 +1,132 @@
+export const dynamic = 'force-dynamic';
+
+import { Metadata } from 'next';
+import { cache } from 'react';
 import { getBlogPostBySlugAction } from '../../actions';
 import BackButton from '../../../components/BackButton';
 
-export const dynamic = 'force-dynamic';
-
 interface PostPageProps {
   params: Promise<{ slug: string }>;
+}
+
+const getCachedPostAndSettings = cache(async (slug: string) => {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL as string;
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 NextJS-Frontend',
+        'Host': 'api.byten.store'
+      },
+      body: JSON.stringify({
+        query: `
+          query GetPostAndGeneralSettings($id: ID!, $idType: PostIdType!) {
+            post(id: $id, idType: $idType) {
+              title
+              content
+              date
+              featuredImage {
+                node {
+                  sourceUrl
+                }
+              }
+            }
+            generalSettings {
+              title
+            }
+          }
+        `,
+        variables: { id: slug, idType: 'SLUG' }
+      }),
+      cache: 'no-store'
+    });
+
+    if (!res.ok) return { post: null, siteTitle: 'BYTEN.STORE' };
+    const json = await res.json();
+    
+    let post = json?.data?.post || null;
+    if (!post) {
+      const fallbackRes = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0 NextJS-Frontend',
+          'Host': 'api.byten.store'
+        },
+        body: JSON.stringify({
+          query: `
+            query GetPostFallback($id: ID!, $idType: PostIdType!) {
+              post(id: $id, idType: $idType) {
+                title
+                content
+                date
+                featuredImage {
+                  node {
+                    sourceUrl
+                  }
+                }
+              }
+            }
+          `,
+          variables: { id: slug.toLowerCase(), idType: 'SLUG' }
+        }),
+        cache: 'no-store'
+      });
+      const fallbackJson = await fallbackRes.json();
+      post = fallbackJson?.data?.post || null;
+    }
+
+    return {
+      post,
+      siteTitle: json?.data?.generalSettings?.title || 'BYTEN.STORE'
+    };
+  } catch (e) {
+    return { post: null, siteTitle: 'BYTEN.STORE' };
+  }
+});
+
+export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
+  try {
+    const resolvedParams = await params;
+    const { post, siteTitle } = await getCachedPostAndSettings(resolvedParams.slug);
+
+    if (post) {
+      const pageTitle = post.title ? `${post.title} | ${siteTitle}` : `Статья | ${siteTitle}`;
+      const cleanDesc = post.content 
+        ? post.content.replace(/<\/?[^>]+(>|$)/g, "").substring(0, 160).trim() + "..." 
+        : `Читайте полезную статью в блоге игрового мира на ${siteTitle}.`;
+      
+      const imageUrl = post.featuredImage?.node?.sourceUrl || "";
+
+      return {
+        title: pageTitle,
+        description: cleanDesc,
+        robots: {
+          index: true,
+          follow: true,
+        },
+        openGraph: {
+          title: pageTitle,
+          description: cleanDesc,
+          type: 'article',
+          url: `https://byten.store{resolvedParams.slug}`,
+          images: imageUrl ? [{ url: imageUrl }] : [],
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: pageTitle,
+          description: cleanDesc,
+          images: imageUrl ? [imageUrl] : [],
+        }
+      };
+    }
+  } catch (e) {}
+
+  return {
+    title: "Статья | BYTEN.STORE",
+    description: "Читайте полезную статью в блоге игрового мира на BYTEN.STORE."
+  };
 }
 
 function formatDate(dateStr: string): string {
@@ -22,7 +144,7 @@ function formatDate(dateStr: string): string {
 
 export default async function BlogPostPage({ params }: PostPageProps) {
   const resolvedParams = await params;
-  const post = await getBlogPostBySlugAction(resolvedParams.slug);
+  const { post } = await getCachedPostAndSettings(resolvedParams.slug);
 
   if (!post) {
     return (

@@ -6,9 +6,19 @@ interface LogoProps {
   className?: string;
   width?: number | string;
   height?: number | string;
+  text?: string;
 }
 
-export default function Logo({ className, width = '100%', height = '100%' }: LogoProps) {
+export default function Logo({ className, width = '100%', height = '100%', text = 'BYTEN.ONLINE' }: LogoProps) {
+  let firstPart = text;
+  let secondPart = '';
+
+  if (text.includes('.')) {
+    const dotIndex = text.indexOf('.');
+    firstPart = text.substring(0, dotIndex);
+    secondPart = text.substring(dotIndex);
+  }
+
   return (
     <svg
       xmlns="http://w3.org"
@@ -34,24 +44,25 @@ export default function Logo({ className, width = '100%', height = '100%' }: Log
         <text
           x="65"
           y="41"
-          fill="#ffffff"
           fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
           fontSize="28"
-          fontWeight="800"
-          letterSpacing="1.5"
         >
-          BYTEN
-        </text>
-        <text
-          x="172"
-          y="41"
-          fill="#22D3EE"
-          fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-          fontSize="28"
-          fontWeight="500"
-          letterSpacing="1"
-        >
-          .STORE
+          <tspan
+            fill="#ffffff"
+            fontWeight="800"
+            letterSpacing="1.5"
+          >
+            {firstPart}
+          </tspan>
+          {secondPart && (
+            <tspan
+              fill="#22D3EE"
+              fontWeight="500"
+              letterSpacing="1"
+            >
+              {secondPart}
+            </tspan>
+          )}
         </text>
       </g>
     </svg>
