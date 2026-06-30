@@ -107,11 +107,18 @@ const getCachedProductAndSettings = cache(async (slug: string) => {
       const matchedProduct = allProducts.find((p: any) => p.slug.toLowerCase() === cleanSlug.toLowerCase());
       
       if (matchedProduct) {
+        if (matchedProduct.image?.sourceUrl && matchedProduct.image.sourceUrl.includes('api.byten.store')) {
+          matchedProduct.image.sourceUrl = matchedProduct.image.sourceUrl.replace('api.byten.store', 'byten.store');
+        }
         return {
           product: matchedProduct,
           siteTitle: listJson?.data?.generalSettings?.title || 'BYTEN.STORE'
         };
       }
+    }
+
+    if (data?.product?.image?.sourceUrl && data.product.image.sourceUrl.includes('api.byten.store')) {
+      data.product.image.sourceUrl = data.product.image.sourceUrl.replace('api.byten.store', 'byten.store');
     }
 
     return {
@@ -140,12 +147,12 @@ export async function generateMetadata({
       : "Купить цифровой товар в магазине цифровых кодов " + siteTitle + ". Автовыдача сразу после оплаты.";
     
     cleanDesc = cleanDesc
+      .replace(/–/g, '–')
       .replace(/&#8211;/g, '–')
-      .replace(/&amp;#8211;/g, '–')
-      .replace(/&#124;/g, '|')
-      .replace(/&amp;#124;/g, '|');
+      .replace(/&amp;#8211;/g, '–');
 
-    const imageUrl = product?.image?.sourceUrl || "";
+    let imageUrl = product?.image?.sourceUrl || "";
+
     const activeSlug = product?.slug || fallbackSlug;
 
     return {
